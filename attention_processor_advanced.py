@@ -98,7 +98,7 @@ class IPAFluxAttnProcessor2_0Advanced(nn.Module):
                 else:
                     scale = self.scale_end
                     
-                print(f"Timestep: {current_timestep}, Step: {self.steps}/{self.total_steps}, Weight: {scale}")
+                # print(f"Timestep: {current_timestep}, Step: {self.steps}/{self.total_steps}, Weight: {scale}")
                 self.__class__._last_timestep_printed = current_timestep
         
         # Calculate scale for return value
