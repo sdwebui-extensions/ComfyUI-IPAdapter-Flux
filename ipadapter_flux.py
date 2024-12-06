@@ -43,6 +43,8 @@ class InstantXFluxIPAdapterModel:
         self.ip_ckpt = ip_ckpt
         self.num_tokens = num_tokens
         # load image encoder
+        if os.path.exists("/stable-diffusion-cache/models/clip/siglip-so400m-patch14-384"):
+            self.image_encoder_path = "/stable-diffusion-cache/models/clip/siglip-so400m-patch14-384"
         self.image_encoder = SiglipVisionModel.from_pretrained(self.image_encoder_path).to(self.device, dtype=torch.float16)
         self.clip_image_processor = AutoProcessor.from_pretrained(self.image_encoder_path)
         # state_dict
