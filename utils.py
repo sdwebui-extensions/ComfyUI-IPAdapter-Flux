@@ -56,6 +56,7 @@ def forward_orig_ipa(
     guidance: Tensor|None = None,
     control=None,
     transformer_options={},
+    attn_mask: Tensor = None,
 ) -> Tensor:
     patches_replace = transformer_options.get("patches_replace", {})
     if img.ndim != 3 or txt.ndim != 3:
@@ -81,18 +82,18 @@ def forward_orig_ipa(
             def block_wrap(args):
                 out = {}
                 if isinstance(block, DoubleStreamBlockIPA): # ipadaper 
-                    out["img"], out["txt"] = block(img=args["img"], txt=args["txt"], vec=args["vec"], pe=args["pe"], t=args["timesteps"])
+                    out["img"], out["txt"] = block(img=args["img"], txt=args["txt"], vec=args["vec"], pe=args["pe"], t=args["timesteps"], attn_mask=args.get("attn_mask"))
                 else:
-                    out["img"], out["txt"] = block(img=args["img"], txt=args["txt"], vec=args["vec"], pe=args["pe"])
+                    out["img"], out["txt"] = block(img=args["img"], txt=args["txt"], vec=args["vec"], pe=args["pe"], attn_mask=args.get("attn_mask"))
                 return out
-            out = blocks_replace[("double_block", i)]({"img": img, "txt": txt, "vec": vec, "pe": pe, "timesteps": timesteps}, {"original_block": block_wrap})
+            out = blocks_replace[("double_block", i)]({"img": img, "txt": txt, "vec": vec, "pe": pe, "timesteps": timesteps, "attn_mask": attn_mask}, {"original_block": block_wrap})
             txt = out["txt"]
             img = out["img"]
         else:
             if isinstance(block, DoubleStreamBlockIPA): # ipadaper 
-                img, txt = block(img=img, txt=txt, vec=vec, pe=pe, t=timesteps)
+                img, txt = block(img=img, txt=txt, vec=vec, pe=pe, t=timesteps, attn_mask=attn_mask)
             else:
-                img, txt = block(img=img, txt=txt, vec=vec, pe=pe)
+                img, txt = block(img=img, txt=txt, vec=vec, pe=pe, attn_mask=attn_mask)
 
         if control is not None: # Controlnet
             control_i = control.get("input")
@@ -108,18 +109,18 @@ def forward_orig_ipa(
             def block_wrap(args):
                 out = {}
                 if isinstance(block, SingleStreamBlockIPA): # ipadaper
-                    out["img"] = block(args["img"], vec=args["vec"], pe=args["pe"], t=args["timesteps"])
+                    out["img"] = block(args["img"], vec=args["vec"], pe=args["pe"], t=args["timesteps"], attn_mask=args.get("attn_mask"))
                 else:
-                    out["img"] = block(args["img"], vec=args["vec"], pe=args["pe"])
+                    out["img"] = block(args["img"], vec=args["vec"], pe=args["pe"], attn_mask=args.get("attn_mask"))
                 return out
 
-            out = blocks_replace[("single_block", i)]({"img": img, "vec": vec, "pe": pe, "timesteps": timesteps}, {"original_block": block_wrap})
+            out = blocks_replace[("single_block", i)]({"img": img, "vec": vec, "pe": pe, "timesteps": timesteps, "attn_mask": attn_mask}, {"original_block": block_wrap})
             img = out["img"]
         else:
             if isinstance(block, SingleStreamBlockIPA): # ipadaper
-                img = block(img, vec=vec, pe=pe, t=timesteps)
+                img = block(img, vec=vec, pe=pe, t=timesteps, attn_mask=attn_mask)
             else:
-                img = block(img, vec=vec, pe=pe)
+                img = block(img, vec=vec, pe=pe, attn_mask=attn_mask)
 
         if control is not None: # Controlnet
             control_o = control.get("output")

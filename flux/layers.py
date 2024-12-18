@@ -28,6 +28,7 @@ class DoubleStreamBlockIPA(nn.Module):
 
         self.txt_norm2 = original_block.txt_norm2
         self.txt_mlp = original_block.txt_mlp
+        self.flipped_img_txt = original_block.flipped_img_txt
 
         self.ip_adapter = ip_adapter
         self.image_emb = image_emb
@@ -37,7 +38,7 @@ class DoubleStreamBlockIPA(nn.Module):
         self.ip_adapter.append(ip_adapter)
         self.image_emb.append(image_emb)
     
-    def forward(self, img: Tensor, txt: Tensor, vec: Tensor, pe: Tensor, t: Tensor):
+    def forward(self, img: Tensor, txt: Tensor, vec: Tensor, pe: Tensor, t: Tensor, attn_mask=None):
         img_mod1, img_mod2 = self.img_mod(vec)
         txt_mod1, txt_mod2 = self.txt_mod(vec)
 
@@ -55,12 +56,22 @@ class DoubleStreamBlockIPA(nn.Module):
         txt_q, txt_k, txt_v = txt_qkv.view(txt_qkv.shape[0], txt_qkv.shape[1], 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
         txt_q, txt_k = self.txt_attn.norm(txt_q, txt_k, txt_v)
 
-        # run actual attention
-        attn = attention(torch.cat((txt_q, img_q), dim=2),
-                         torch.cat((txt_k, img_k), dim=2),
-                         torch.cat((txt_v, img_v), dim=2), pe=pe)
+        if self.flipped_img_txt:
+             # run actual attention
+            attn = attention(torch.cat((img_q, txt_q), dim=2),
+                             torch.cat((img_k, txt_k), dim=2),
+                             torch.cat((img_v, txt_v), dim=2),
+                             pe=pe, mask=attn_mask)
 
-        txt_attn, img_attn = attn[:, : txt.shape[1]], attn[:, txt.shape[1] :]
+            img_attn, txt_attn = attn[:, : img.shape[1]], attn[:, img.shape[1]:]           
+        else:
+            # run actual attention
+            attn = attention(torch.cat((txt_q, img_q), dim=2),
+                            torch.cat((txt_k, img_k), dim=2),
+                            torch.cat((txt_v, img_v), dim=2),
+                            pe=pe, mask=attn_mask)
+            
+            txt_attn, img_attn = attn[:, : txt.shape[1]], attn[:, txt.shape[1] :]
 
         for adapter, image in zip(self.ip_adapter, self.image_emb):
             # this does a separate attention for each adapter
@@ -116,7 +127,7 @@ class SingleStreamBlockIPA(nn.Module):
         self.ip_adapter.append(ip_adapter)
         self.image_emb.append(image_emb)
 
-    def forward(self, x: Tensor, vec: Tensor, pe: Tensor, t:Tensor) -> Tensor:
+    def forward(self, x: Tensor, vec: Tensor, pe: Tensor, t:Tensor, attn_mask=None) -> Tensor:
         mod, _ = self.modulation(vec)
         x_mod = (1 + mod.scale) * self.pre_norm(x) + mod.shift
         qkv, mlp = torch.split(self.linear1(x_mod), [3 * self.hidden_size, self.mlp_hidden_dim], dim=-1)
@@ -125,7 +136,7 @@ class SingleStreamBlockIPA(nn.Module):
         q, k = self.norm(q, k, v)
 
         # compute attention
-        attn = attention(q, k, v, pe=pe)
+        attn = attention(q, k, v, pe=pe, mask=attn_mask)
 
         for adapter, image in zip(self.ip_adapter, self.image_emb):
             # this does a separate attention for each adapter
