@@ -14,7 +14,7 @@
 
 ## Highlight
 
-Please update your ComfyUI to commit `2fd9c13`.
+Please update your ComfyUI to commit `bda1482`.
 
 ## Project Updates
 
