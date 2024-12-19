@@ -14,7 +14,7 @@
 
 ## 重要提示
 
-请升级到 ComfyUI commit `2fd9c13` 之后的版本。  
+请升级到 ComfyUI commit `bda1482` 之后的版本。  
 
 ## 项目更新
 
