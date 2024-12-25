@@ -14,10 +14,11 @@
 
 ## Highlight
 
-Please update your ComfyUI to commit `2fd9c13`.
+Please update your ComfyUI to commit `bda1482`.
 
 ## Project Updates
 
+- **update**: ```2024/12/10```: Support multiple ipadapter, thanks to <a href="https://github.com/Slickytail">Slickytail.
 - **Update**: ```2024/11/25```: Adapted to the latest version of ComfyUI. Tested on ComfyUI commit `2fd9c13`, weights can now be successfully loaded and unloaded.  
 - 🌱 **Source**: ```2024/11/22```: We have open-sourced FLUX.1-dev-IP-Adapter, an IPAdapter model based on FLUX.1 dev. You can access the [ipadapter weights](https://huggingface.co/InstantX/FLUX.1-dev-IP-Adapter).
 
@@ -37,6 +38,18 @@ Please update your ComfyUI to commit `2fd9c13`.
 
 <div align="center">
 <img src=./workflows/ipadapter_example.png width="100%"/>
+</div>
+
+[Adjust start step and end step](./workflows/ipadapter_example_start_end_percent.json)
+
+<div align="center">
+<img src=./workflows/ipadapter_example_start_end_percent.png width="100%"/>
+</div>
+
+[Use multiple ipadapter with multiple images](./workflows/multi-ipadapter_example.json)
+
+<div align="center">
+<img src=./workflows/multi-ipadapter_example.png width="100%"/>
 </div>
 
 ### Online Experience
