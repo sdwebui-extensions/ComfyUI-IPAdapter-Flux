@@ -6,7 +6,7 @@ from transformers import AutoProcessor, SiglipVisionModel
 from PIL import Image
 import numpy as np
 from .attention_processor_advanced import IPAFluxAttnProcessor2_0Advanced
-from .utils import is_model_pathched, FluxUpdateModules
+from .utils import is_model_patched, FluxUpdateModules
 
 MODELS_DIR = os.path.join(folder_paths.models_dir, "ipadapter-flux")
 if "ipadapter-flux" not in folder_paths.folder_names_and_paths:
